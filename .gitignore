@@ -1,0 +1,3 @@
+ls -a
+rm .gitignore.swp
+
