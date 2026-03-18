@@ -1,3 +1,7 @@
 ls -a
 rm .gitignore.swp
-
+venv/
+__pycache__/
+*.pyc
+logs/
+data/serving/
