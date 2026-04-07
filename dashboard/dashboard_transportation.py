@@ -22,14 +22,22 @@ st.set_page_config(
 
 st.title("Smart Transportation - Real-Time Analytics")
 
+# =========================================
+# PERFORMANCE SETTING
+# =========================================
 REFRESH_INTERVAL = 5
+
 placeholder = st.empty()
 
-# MAIN LOOP
+# =========================================
+# MAIN LOOP (REAL-TIME)
+# =========================================
 while True:
     with placeholder.container():
 
+        # =========================
         # LOAD DATA
+        # =========================
         df = ta.load_data(DATA_PATH)
 
         if df.empty:
@@ -37,10 +45,19 @@ while True:
             time.sleep(REFRESH_INTERVAL)
             continue
 
+        # =========================
         # PREPROCESS
+        # =========================
         df = ta.preprocess(df)
 
+        # =========================
+        # PERFORMANCE OPTIMIZATION
+        # =========================
+        df = df.tail(1000)  # 🔥 LIMIT DATA
+
+        # =========================
         # METRICS
+        # =========================
         try:
             metrics = ta.compute_metrics(df)
         except Exception as e:
@@ -55,16 +72,23 @@ while True:
 
         st.divider()
 
+        # =========================
         # PEAK HOUR
+        # =========================
         try:
             peak_hour = ta.detect_peak_hour(df)
-            st.info(f"Peak traffic hour: {peak_hour}:00")
+            if peak_hour is not None:
+                st.info(f"Peak traffic hour: {peak_hour}:00")
+            else:
+                st.warning("Peak hour not available")
         except Exception:
             st.warning("Tidak dapat menghitung peak hour")
 
         st.divider()
 
+        # =========================
         # ALERTS
+        # =========================
         try:
             alerts_list = alert.generate_alert(df)
             if alerts_list:
@@ -76,27 +100,54 @@ while True:
 
         st.divider()
 
-        # VISUALISASI
+        # =========================================
+        # VISUALISASI (OPTIMIZED)
+        # =========================================
         try:
+            st.subheader("Analytics Visualization")
+
             col1, col2 = st.columns(2)
 
+            # 1. Traffic Density
             with col1:
-                st.subheader("Fare per Location")
+                st.subheader("Traffic Density (Per Location)")
                 st.bar_chart(ta.fare_per_location(df))
 
+            # 2. Vehicle Distribution
             with col2:
                 st.subheader("Vehicle Distribution")
                 st.bar_chart(ta.vehicle_distribution(df))
 
-                st.subheader("Mobility Trend")
-                st.line_chart(ta.mobility_trend(df))
+            st.divider()
+
+            # 3. Real-Time Traffic Windowed
+            st.subheader("Real-Time Traffic (Windowed)")
+            traffic_window = ta.traffic_per_window(df)
+
+            if traffic_window is not None and not traffic_window.empty:
+                st.line_chart(traffic_window.tail(100))
+            else:
+                st.info("No traffic data available yet")
+
+            st.divider()
+
+            # 4. Mobility Trend (Downsampled)
+            st.subheader("Mobility Trend (Downsampled)")
+            df_sample = df.tail(1000)
+
+            if "fare" in df_sample.columns:
+                st.line_chart(df_sample["fare"])
+            else:
+                st.warning("Fare column not available")
 
         except Exception as e:
             st.warning(f"Visualization error: {e}")
 
         st.divider()
 
+        # =========================
         # ANOMALY
+        # =========================
         try:
             st.subheader("Abnormal Trips")
             anomaly_df = ta.detect_anomaly(df)
@@ -110,7 +161,9 @@ while True:
 
         st.divider()
 
-        # LIVE DATA
+        # =========================
+        # LIVE DATA (LIMITED)
+        # =========================
         st.subheader("Live Trip Data")
         st.dataframe(df.tail(50))
 
