@@ -6,3 +6,10 @@ data/
 *.parquet
 *.tgz
 spark-*
+venv/
+__pycache__/
+*.pyc
+
+kafka_2.13-3.5.1/
+stream_data/checkpoint/
+stream_data/realtime_output/
